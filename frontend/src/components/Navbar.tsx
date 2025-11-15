@@ -1,0 +1,31 @@
+import { Play } from "lucide-react";
+import { Button } from "./ui/button";
+
+interface NavbarProps {
+  onProjectsClick?: () => void;
+}
+
+export function Navbar({ onProjectsClick }: NavbarProps) {
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-lg">
+            <Play className="w-5 h-5 text-white fill-white" />
+          </div>
+          <span className="text-white text-2xl tracking-tight">choreo</span>
+        </div>
+
+        {/* Projects Button */}
+        <Button
+          variant="ghost"
+          className="text-white hover:bg-white/10"
+          onClick={onProjectsClick}
+        >
+          Projects
+        </Button>
+      </div>
+    </nav>
+  );
+}
