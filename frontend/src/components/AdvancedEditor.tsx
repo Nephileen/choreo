@@ -276,7 +276,7 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={(e) => {
+                              onClick={(e: { stopPropagation: () => void; }) => {
                                 e.stopPropagation();
                                 removeTimelineClip(tc.id);
                               }}
