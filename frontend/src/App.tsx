@@ -13,15 +13,26 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("home");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
-  // Handle navigation to advanced editor with project ID
+  // When user clicks a project in "Your Projects"
   const handleProjectSelect = (projectId: string) => {
     setSelectedProjectId(projectId);
     setCurrentPage("advancedEditor");
   };
 
+  // ⬇️ When a brand-new project is saved from ProjectEditor
+  const handleNewProjectSaved = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setCurrentPage("advancedEditor"); // go straight to the editor
+  };
+
   // Render based on current page
   if (currentPage === "uploadEditor") {
-    return <ProjectEditor onBack={() => setCurrentPage("home")} />;
+    return (
+      <ProjectEditor
+        onBack={() => setCurrentPage("home")}
+        onSave={handleNewProjectSaved}   // ⬅️ pass onSave
+      />
+    );
   }
 
   if (currentPage === "projectList") {

@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Upload, X, Plus } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
+import { Input } from "./ui/input"; 
 
 interface VideoClip {
   id: string;
@@ -13,11 +14,14 @@ interface VideoClip {
 
 interface ProjectEditorProps {
   onBack: () => void;
+  onSave: (projectId: string) => void; 
 }
 
-export function ProjectEditor({ onBack }: ProjectEditorProps) {
+export function ProjectEditor({ onBack,  onSave }: ProjectEditorProps) {
+  const [projectTitle, setProjectTitle] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [clips, setClips] = useState<VideoClip[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -58,12 +62,39 @@ export function ProjectEditor({ onBack }: ProjectEditorProps) {
     fileInputRef.current?.click();
   };
 
+    const handleSaveProject = () => {
+    if (!projectTitle.trim()) {
+      setError("Please add a project title before saving.");
+      return;
+    }
+
+    const id = crypto.randomUUID();
+
+    const stored = localStorage.getItem("projects");
+    const existingProjects = stored ? JSON.parse(stored) : [];
+
+    const newProject = {
+      id,
+      name: projectTitle.trim(),
+      clipCount: clips.length,
+      lastModified: new Date().toISOString(),
+    };
+
+    localStorage.setItem(
+      "projects",
+      JSON.stringify([...existingProjects, newProject])
+    );
+
+    onSave(id);
+  };
+
+
   return (
     <div className="min-h-screen bg-black">
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
+        <div className="flex items-start justify-between mb-8">
+          <div className="max-w-lg">
             <Button
               variant="ghost"
               onClick={onBack}
@@ -75,13 +106,35 @@ export function ProjectEditor({ onBack }: ProjectEditorProps) {
             <p className="text-white/60 mt-2">
               Upload your choreography clips and add notes to each one
             </p>
+
+            {/* Project title input */}
+            <Input
+              placeholder="Project title"
+              value={projectTitle}
+              onChange={(e) => {
+                setProjectTitle(e.target.value);
+                if (error) setError(null);
+              }}
+              className="mt-4 bg-white/5 border-white/20 text-white"
+            />
+
+            {/* Error message if title missing */}
+            {error && (
+              <p className="mt-2 text-sm text-white/70">
+                {error}
+              </p>
+            )}
           </div>
+
+          {/* Save button that actually runs handleSaveProject */}
           <Button
+            onClick={handleSaveProject}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
           >
             Save Project
           </Button>
         </div>
+
 
         {/* Upload Button */}
         <div className="mb-8">
