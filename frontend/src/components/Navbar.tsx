@@ -19,8 +19,7 @@ export function Navbar({ onProjectsClick }: NavbarProps) {
 
         {/* Projects Button */}
         <Button
-          variant="ghost"
-          className="text-white hover:bg-white/10"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
           onClick={onProjectsClick}
         >
           Projects

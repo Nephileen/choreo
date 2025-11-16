@@ -65,14 +65,14 @@ export function ProjectEditor({ onBack }: ProjectEditorProps) {
         <div className="flex items-center justify-between mb-8">
           <div>
             <Button
-              variant="ghost"
               onClick={onBack}
-              className="text-white/70 hover:text-white hover:bg-white/10 mb-4"
+              
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white mb-4"
             >
               ← Back to Home
             </Button>
             <h1 className="text-4xl text-white">New Project</h1>
-            <p className="text-white/60 mt-2">
+            <p className="text-white mt-2">
               Upload your choreography clips and add notes to each one
             </p>
           </div>
@@ -98,7 +98,7 @@ export function ProjectEditor({ onBack }: ProjectEditorProps) {
           <Button
             onClick={handleUploadClick}
             size="lg"
-            variant="outline"
+            // variant="outline"
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-6 text-lg rounded-full shadow-lg shadow-purple-500/50"
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -110,8 +110,8 @@ export function ProjectEditor({ onBack }: ProjectEditorProps) {
         {clips.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/20 rounded-2xl">
             <Upload className="w-16 h-16 text-white/30 mb-4" />
-            <p className="text-xl text-white/50 mb-2">No clips yet</p>
-            <p className="text-white/30 mb-6">
+            <p className="text-xl text-white mb-2">No clips yet</p>
+            <p className="text-white mb-6">
               Upload your first video clip to get started
             </p>
             <Button

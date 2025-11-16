@@ -50,16 +50,15 @@ export function ProjectList({ onCreateNew, onProjectSelect, onBack }: ProjectLis
         {/* Header */}
         <div className="mb-8">
           <Button
-            variant="ghost"
             onClick={onBack}
-            className="text-white/70 hover:text-white hover:bg-white/10 mb-4"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white mb-4"
           >
             ← Back to Home
           </Button>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl text-white">Your Projects</h1>
-              <p className="text-white/60 mt-2">
+              <p className="text-white mt-2">
                 Manage and edit your choreography projects
               </p>
             </div>

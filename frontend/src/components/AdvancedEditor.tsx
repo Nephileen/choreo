@@ -120,10 +120,8 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
       <div className="bg-[#2a2a2a] border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
             onClick={onBack}
-            className="text-white/70 hover:text-white hover:bg-white/10"
-          >
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
             ← Projects
           </Button>
           <div className="h-6 w-px bg-white/20"></div>
@@ -131,9 +129,7 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            variant="ghost"
-            className="text-white/70 hover:text-white hover:bg-white/10"
-          >
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
