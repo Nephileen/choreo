@@ -1,5 +1,96 @@
+import { Plus, Folder, Clock } from "lucide-react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+
+type Project = {
+  id: string;
+  name: string;
+  clipCount: number;
+  lastModified: string;
+};
+
+interface ProjectListProps {
+  projects: Project[];
+  onCreateNew: () => void;
+  onProjectSelect: (projectId: string) => void;
+  onBack: () => void;
+}
+
+export function ProjectList({
+  projects,
+  onCreateNew,
+  onProjectSelect,
+  onBack,
+}: ProjectListProps) {
+  return (
+    <div className="min-h-screen bg-black">
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Button
+            onClick={onBack}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white mb-4"
+          >
+            ← Back to Home
+          </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl text-white">Your Projects</h1>
+              <p className="text-white mt-2">
+                Manage and edit your choreography projects
+              </p>
+            </div>
+            <Button
+              onClick={onCreateNew}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Create New Project
+            </Button>
+          </div>
+        </div>
+
+        {/* If no projects yet */}
+        {projects.length === 0 ? (
+          <p className="text-white/60 mt-8">
+            You do not have any projects yet. Click &quot;Create New Project&quot; to get started.
+          </p>
+        ) : (
+          /* Projects Grid */
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
+              <Card
+                key={project.id}
+                onClick={() => onProjectSelect(project.id)}
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden group"
+              >
+                {/* Thumbnail */}
+                <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                  <Folder className="w-16 h-16 text-white/30 group-hover:text-white/50 transition-colors" />
+                </div>
+
+                {/* Info */}
+                <div className="p-4 space-y-3">
+                  <h3 className="text-xl text-white">{project.name}</h3>
+                  <div className="flex items-center justify-between text-sm text-white/50">
+                    <span>{project.clipCount} clips</span>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>{project.lastModified}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 // import React, { useEffect, useState } from "react";
-// import { Button } from "./ui/button";
 // import { Folder, Clock, Plus } from "lucide-react";
 
 // interface Project {
@@ -54,30 +145,28 @@
 //     <div className="min-h-screen bg-black">
 //       <div className="container mx-auto px-6 py-8">
 //         {/* Header */}
-//         <div className="flex items-center justify-between mb-8">
-//           <div>
-//             <Button
-//               variant="ghost"
-//               onClick={onBack}
-//               className="text-white/70 hover:text-white hover:bg-white/10 mb-2"
-//             >
-//               ← Back to Home
-//             </Button>
-//             <h1 className="text-3xl md:text-4xl text-white font-semibold">
-//               Your Projects
-//             </h1>
-//             <p className="text-white/60 text-sm mt-1">
-//               Manage and edit your choreography projects
-//             </p>
-//           </div>
-
-//           <Button
-//             onClick={onCreateNew}
-//             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-5 py-2 rounded-full flex items-center gap-2"
+//         <div className="mb-8">
+//           <button
+//             onClick={onBack}
+//             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg mb-4 transition"
 //           >
-//             <Plus className="w-4 h-4" />
-//             Create New Project
-//           </Button>
+//             ← Back to Home
+//           </button>
+//           <div className="flex items-center justify-between">
+//             <div>
+//               <h1 className="text-4xl text-white font-semibold">Your Projects</h1>
+//               <p className="text-white/60 mt-2">
+//                 Manage and edit your choreography projects
+//               </p>
+//             </div>
+//             <button
+//               onClick={onCreateNew}
+//               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-5 py-3 rounded-full flex items-center gap-2 shadow-lg transition"
+//             >
+//               <Plus className="w-5 h-5" />
+//               Create New Project
+//             </button>
+//           </div>
 //         </div>
 
 //         {/* Empty state */}
@@ -88,41 +177,41 @@
 //             <p className="text-white/40 mb-6">
 //               Create your first choreography project to see it here.
 //             </p>
-//             <Button
+//             <button
 //               onClick={onCreateNew}
-//               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+//               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-full transition"
 //             >
 //               + New Project
-//             </Button>
+//             </button>
 //           </div>
 //         ) : (
-//           // ⬇️ Centered grid with separate purple cards (like the original)
-//           <div className="max-w-5xl mx-auto grid gap-8 md:grid-cols-2 lg:grid-cols-3 pt-4">
+//           /* Projects Grid - TALL VERTICAL CARDS like the original */
+//           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 //             {projects.map((project) => (
 //               <button
 //                 key={project.id}
 //                 onClick={() => onProjectSelect(project.id)}
-//                 className="rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:scale-[1.01] transition transform focus:outline-none focus:ring-2 focus:ring-purple-400"
+//                 className="rounded-3xl overflow-hidden shadow-2xl hover:shadow-purple-500/30 hover:scale-[1.02] transition-all duration-300 transform focus:outline-none focus:ring-4 focus:ring-purple-500/50 text-left group"
 //               >
-//                 {/* Top gradient section */}
-//                 <div className="h-44 bg-gradient-to-b from-purple-500 via-pink-500 to-purple-700 flex items-center justify-center">
-//                   <Folder className="w-10 h-10 text-white/80" />
+//                 {/* Top gradient section - TALL like the original design */}
+//                 <div style={{ height: '280px' }} className="bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 flex items-center justify-center relative">
+//                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+//                   <Folder style={{ width: '80px', height: '80px' }} className="text-white/50 relative z-10 group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
 //                 </div>
 
-//                 {/* Bottom black info section */}
-//                 <div className="bg-black px-6 py-4 flex items-center justify-between">
-//                   <div>
-//                     <h2 className="text-white text-lg font-medium">
+//                 {/* Bottom dark section with project info */}
+//                 <div style={{ minHeight: '120px' }} className="bg-zinc-900 px-6 py-6">
+//                   <div className="mb-3">
+//                     <h2 className="text-white text-xl font-semibold mb-1">
 //                       {project.name}
 //                     </h2>
-//                     <p className="text-white/60 text-sm">
-//                       {project.clipCount} clip
-//                       {project.clipCount === 1 ? "" : "s"}
+//                     <p className="text-white/50 text-sm">
+//                       {project.clipCount} clip{project.clipCount === 1 ? "" : "s"}
 //                     </p>
 //                   </div>
-
-//                   <div className="flex items-center gap-1 text-xs text-white/50">
-//                     <Clock className="w-3 h-3" />
+                  
+//                   <div className="flex items-center gap-1.5 text-xs text-white/40">
+//                     <Clock className="w-3.5 h-3.5" />
 //                     <span>{formatTimeAgo(project.lastModified)}</span>
 //                   </div>
 //                 </div>
@@ -135,109 +224,64 @@
 //   );
 // }
 
+//This is the old one that used the dummy data! 
+// export function ProjectList({ onCreateNew, onProjectSelect, onBack }: ProjectListProps) {
+//   return (
+//     <div className="min-h-screen bg-black">
+//       <div className="container mx-auto px-6 py-8">
+//         {/* Header */}
+//         <div className="mb-8">
+//           <Button
+//             onClick={onBack}
+//             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white mb-4"
+//           >
+//             ← Back to Home
+//           </Button>
+//           <div className="flex items-center justify-between">
+//             <div>
+//               <h1 className="text-4xl text-white">Your Projects</h1>
+//               <p className="text-white mt-2">
+//                 Manage and edit your choreography projects
+//               </p>
+//             </div>
+//             <Button
+//               onClick={onCreateNew}
+//               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+//             >
+//               <Plus className="w-5 h-5 mr-2" />
+//               Create New Project
+//             </Button>
+//           </div>
+//         </div>
 
-import { Plus, Folder, Clock } from "lucide-react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+//         {/* Projects Grid */}
+//         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+//           {mockProjects.map((project) => (
+//             <Card
+//               key={project.id}
+//               onClick={() => onProjectSelect(project.id)}
+//               className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden group"
+//             >
+//               {/* Thumbnail */}
+//               <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+//                 <Folder className="w-16 h-16 text-white/30 group-hover:text-white/50 transition-colors" />
+//               </div>
 
-interface Project {
-  id: string;
-  name: string;
-  clipCount: number;
-  lastModified: string;
-  thumbnail?: string;
-}
-
-interface ProjectListProps {
-  onCreateNew: () => void;
-  onProjectSelect: (projectId: string) => void;
-  onBack: () => void;
-}
-
-const mockProjects: Project[] = [
-  {
-    id: "1",
-    name: "Summer Dance Routine",
-    clipCount: 8,
-    lastModified: "2 days ago",
-  },
-  {
-    id: "2",
-    name: "Hip Hop Freestyle",
-    clipCount: 12,
-    lastModified: "1 week ago",
-  },
-  {
-    id: "3",
-    name: "Contemporary Piece",
-    clipCount: 6,
-    lastModified: "2 weeks ago",
-  },
-  {
-    id: "4",
-    name: "Ballet Performance",
-    clipCount: 10,
-    lastModified: "3 weeks ago",
-  },
-];
-
-export function ProjectList({ onCreateNew, onProjectSelect, onBack }: ProjectListProps) {
-  return (
-    <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            onClick={onBack}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white mb-4"
-          >
-            ← Back to Home
-          </Button>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl text-white">Your Projects</h1>
-              <p className="text-white mt-2">
-                Manage and edit your choreography projects
-              </p>
-            </div>
-            <Button
-              onClick={onCreateNew}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Create New Project
-            </Button>
-          </div>
-        </div>
-
-        {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockProjects.map((project) => (
-            <Card
-              key={project.id}
-              onClick={() => onProjectSelect(project.id)}
-              className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer overflow-hidden group"
-            >
-              {/* Thumbnail */}
-              <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
-                <Folder className="w-16 h-16 text-white/30 group-hover:text-white/50 transition-colors" />
-              </div>
-
-              {/* Info */}
-              <div className="p-4 space-y-3">
-                <h3 className="text-xl text-white">{project.name}</h3>
-                <div className="flex items-center justify-between text-sm text-white/50">
-                  <span>{project.clipCount} clips</span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{project.lastModified}</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+//               {/* Info */}
+//               <div className="p-4 space-y-3">
+//                 <h3 className="text-xl text-white">{project.name}</h3>
+//                 <div className="flex items-center justify-between text-sm text-white/50">
+//                   <span>{project.clipCount} clips</span>
+//                   <div className="flex items-center gap-1">
+//                     <Clock className="w-4 h-4" />
+//                     <span>{project.lastModified}</span>
+//                   </div>
+//                 </div>
+//               </div>
+//             </Card>
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
