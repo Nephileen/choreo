@@ -75,8 +75,6 @@ export function ProjectList({
                   <div className="flex items-center justify-between text-sm text-white/50">
                     <span>{project.clipCount} clips</span>
                     <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{project.lastModified}</span>
                     </div>
                   </div>
                 </div>

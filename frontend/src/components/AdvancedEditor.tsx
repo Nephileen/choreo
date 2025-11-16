@@ -298,15 +298,15 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div>
               <label className="text-white/70 text-sm mb-2 block">Volume</label>
-              <Slider defaultValue={[100]} max={100} step={1} className="w-full" />
+              <Slider defaultValue={[0]} max={100} step={1} className="b-full" />
             </div>
             <div>
               <label className="text-white/70 text-sm mb-2 block">Speed</label>
-              <Slider defaultValue={[100]} max={200} min={25} step={5} className="w-full" />
+              <Slider defaultValue={[100]} max={200} min={25} step={5} className="w-full"/>
             </div>
             <div>
               <label className="text-white/70 text-sm mb-2 block">Opacity</label>
-              <Slider defaultValue={[100]} max={100} step={1} className="w-full" />
+              <Slider defaultValue={[0]} max={100} step={1} className="w-full" />
             </div>
           </div>
         </div>
