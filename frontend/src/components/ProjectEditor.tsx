@@ -1,15 +1,17 @@
 import React, { useState, useRef } from "react";
-import { Upload, X, Plus } from "lucide-react";
+import { Upload, X, Plus, Loader } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
+import { uploadVideos, saveSequence, UploadedClip } from "../services/api";
 
 type Project = {
   id: string;
   name: string;
   clipCount: number;
   lastModified: string;
+  backendClipIds?: string[];
 };
 
 interface VideoClip {
@@ -17,6 +19,7 @@ interface VideoClip {
   file: File;
   url: string;
   notes: string;
+  backendClip?: UploadedClip;
 }
 
 interface ProjectEditorProps {
@@ -28,6 +31,7 @@ export function ProjectEditor({ onBack, onSave }: ProjectEditorProps) {
   const [projectTitle, setProjectTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [clips, setClips] = useState<VideoClip[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +43,7 @@ export function ProjectEditor({ onBack, onSave }: ProjectEditorProps) {
       file,
       url: URL.createObjectURL(file),
       notes: "",
+      backendClip: undefined,
     }));
 
     setClips((prev) => [...prev, ...newClips]);
@@ -69,32 +74,99 @@ export function ProjectEditor({ onBack, onSave }: ProjectEditorProps) {
     fileInputRef.current?.click();
   };
 
-  const handleSaveProject = () => {
+  const handleSaveProject = async () => {
     if (!projectTitle.trim()) {
       setError("Please add a project title before saving.");
       return;
     }
 
-    const id = crypto.randomUUID();
+    if (clips.length === 0) {
+      setError("Please add at least one video clip before saving.");
+      return;
+    }
 
-    const stored = localStorage.getItem("projects");
-    const existingProjects = stored ? JSON.parse(stored) : [];
+    try {
+      setIsUploading(true);
+      setError("");
 
-    const newProject: Project = {
-      id,
-      name: projectTitle.trim(),
-      clipCount: clips.length,
-      lastModified: new Date().toISOString(),
-    };
+      // Get files that haven't been uploaded yet
+      const filesToUpload = clips
+        .filter((clip) => !clip.backendClip && clip.file)
+        .map((clip) => clip.file as File);
 
-    // Persist to localStorage (optional but fine)
-    localStorage.setItem(
-      "projects",
-      JSON.stringify([...existingProjects, newProject])
-    );
+      // Upload files if there are any new ones
+      let newUploadedClips: UploadedClip[] = [];
+      if (filesToUpload.length > 0) {
+        newUploadedClips = await uploadVideos(filesToUpload);
 
-    // ⬅️ send full project up to App
-    onSave(newProject);
+        // Update clips with backend references
+        // Map by originalName because that's what the backend returns
+        const backendClipMap = new Map(newUploadedClips.map((c) => [c.originalName, c]));
+        setClips((prev) =>
+          prev.map((clip) =>
+            clip.file && !clip.backendClip
+              ? {
+                  ...clip,
+                  backendClip: backendClipMap.get(clip.file.name),
+                }
+              : clip
+          )
+        );
+      }
+
+      // Build complete list of backend clips including newly uploaded ones
+      const allBackendClips: UploadedClip[] = [];
+      
+      // Add all clips that already have backend references
+      for (const clip of clips) {
+        if (clip.backendClip) {
+          allBackendClips.push(clip.backendClip);
+        }
+      }
+      
+      // Add newly uploaded clips that don't have matches yet
+      for (const newClip of newUploadedClips) {
+        if (!allBackendClips.find(c => c.id === newClip.id)) {
+          allBackendClips.push(newClip);
+        }
+      }
+
+      if (allBackendClips.length === 0) {
+        setError("No videos available to save.");
+        setIsUploading(false);
+        return;
+      }
+
+      // Save sequence to backend with clip IDs
+      const clipIds = allBackendClips.map((clip) => clip.id);
+      await saveSequence(clipIds);
+
+      const id = crypto.randomUUID();
+      const stored = localStorage.getItem("projects");
+      const existingProjects = stored ? JSON.parse(stored) : [];
+
+      const newProject: Project = {
+        id,
+        name: projectTitle.trim(),
+        clipCount: allBackendClips.length,
+        lastModified: new Date().toISOString(),
+        backendClipIds: clipIds,
+      };
+
+      // Persist to localStorage
+      localStorage.setItem(
+        "projects",
+        JSON.stringify([...existingProjects, newProject])
+      );
+
+      setIsUploading(false);
+      onSave(newProject);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to save project";
+      setError(errorMessage);
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -136,9 +208,11 @@ export function ProjectEditor({ onBack, onSave }: ProjectEditorProps) {
           {/* Save button */}
           <Button
             onClick={handleSaveProject}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+            disabled={isUploading || clips.length === 0}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Save Project
+            {isUploading && <Loader className="w-4 h-4 animate-spin" />}
+            {isUploading ? "Saving..." : "Save Project"}
           </Button>
         </div>
 

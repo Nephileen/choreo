@@ -1,15 +1,25 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Save, Upload, Trash2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Save, Upload, Trash2, Loader } from "lucide-react";
 import { Button } from "./ui/button";
 import { Slider } from "./ui/slider";
 import { Card } from "./ui/card";
+import {
+  getVideos,
+  getSequence,
+  saveSequence,
+  exportChoreography,
+  UploadedClip,
+} from "../services/api";
 
 interface VideoClip {
   id: string;
-  name: string;
-  duration: number;
-  url: string;
-  notes?: string;
+  filename: string;
+  originalName: string;
+  duration?: number;
+  url?: string;
+  size: number;
+  uploadedAt: string;
+  userId: string;
 }
 
 interface TimelineClip {
@@ -25,53 +35,97 @@ interface AdvancedEditorProps {
   onBack: () => void;
 }
 
-// Mock data - in real app this would come from props or API
-const mockClips: VideoClip[] = [
-  { id: "1", name: "Intro Move.mp4", duration: 15, url: "" },
-  { id: "2", name: "Main Routine.mp4", duration: 30, url: "" },
-  { id: "3", name: "Spin Section.mp4", duration: 12, url: "" },
-  { id: "4", name: "Floor Work.mp4", duration: 20, url: "" },
-  { id: "5", name: "Finale.mp4", duration: 18, url: "" },
-];
-
 export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
-  const [clips, setClips] = useState<VideoClip[]>(mockClips);
-  const [timelineClips, setTimelineClips] = useState<TimelineClip[]>([
-    { id: "t1", clipId: "1", startTime: 0, duration: 15, trackIndex: 0 },
-    { id: "t2", clipId: "2", startTime: 15, duration: 30, trackIndex: 0 },
-  ]);
+  const [clips, setClips] = useState<VideoClip[]>([]);
+  const [timelineClips, setTimelineClips] = useState<TimelineClip[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [draggedClip, setDraggedClip] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
+
+  // Load clips and saved sequence on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch all uploaded videos
+        const uploadedClips = await getVideos();
+        setClips(uploadedClips);
+
+        // Load saved sequence if it exists
+        try {
+          const savedSequenceIds = await getSequence();
+          if (savedSequenceIds && savedSequenceIds.length > 0) {
+            // Reconstruct timeline from saved sequence
+            const reconstructedTimeline: TimelineClip[] = [];
+            let currentStartTime = 0;
+
+            for (const clipId of savedSequenceIds) {
+              const clip = uploadedClips.find((c) => c.id === clipId);
+              if (clip) {
+                reconstructedTimeline.push({
+                  id: `t${Date.now()}-${clipId}`,
+                  clipId,
+                  startTime: currentStartTime,
+                  duration: clip.duration || 10,
+                  trackIndex: 0,
+                });
+                currentStartTime += clip.duration || 10;
+              }
+            }
+
+            setTimelineClips(reconstructedTimeline);
+          }
+        } catch {
+          // No saved sequence yet, start with empty timeline
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load videos";
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-const handleImportFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const files = event.target.files;
-  if (!files) return;
+  const handleImportFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files) return;
 
-  const newClips: VideoClip[] = Array.from(files).map((file) => ({
-    id: crypto.randomUUID(),
-    name: file.name,
-    duration: 0,
-    url: URL.createObjectURL(file),
-    notes: "",
-  }));
+    try {
+      // Import and upload new videos directly to backend
+      const { uploadVideos: uploadNewVideos } = await import(
+        "../services/api"
+      );
+      const newClips = await uploadNewVideos(Array.from(files));
+      setClips((prev) => [...prev, ...newClips]);
 
-  setClips((prev) => [...prev, ...newClips]);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to import videos";
+      setError(errorMessage);
+    }
+  };
 
-  // reset input so you can import the same file again later if needed
-  if (fileInputRef.current) {
-    fileInputRef.current.value = "";
-  }
-};
-
-const handleImportClick = () => {
-  fileInputRef.current?.click();
-};
-
-  /* */
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const pixelsPerSecond = 10;
   const totalDuration = Math.max(
@@ -102,7 +156,7 @@ const handleImportClick = () => {
       id: `t${Date.now()}`,
       clipId: draggedClip,
       startTime,
-      duration: clip.duration,
+      duration: clip.duration || 10,
       trackIndex,
     };
 
@@ -172,12 +226,65 @@ const handleImportClick = () => {
             Import
           </Button>
 
-          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-            <Save className="w-4 h-4 mr-2" />
-            Save
+          <Button
+            onClick={async () => {
+              try {
+                setIsSaving(true);
+                setError(null);
+
+                // Extract clip IDs in order from timeline
+                const clipIds = timelineClips
+                  .sort((a, b) => a.startTime - b.startTime)
+                  .map((tc) => tc.clipId);
+
+                // Save sequence to backend
+                await saveSequence(clipIds);
+
+                // Optionally export after saving
+                try {
+                  const downloadUrl = await exportChoreography();
+                  // Create a link and trigger download
+                  const link = document.createElement("a");
+                  link.href = downloadUrl;
+                  link.download = "choreography.mp4";
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                } catch (exportErr) {
+                  // Export is optional, don't fail if it doesn't work
+                  console.log("Export not yet available");
+                }
+
+                setIsSaving(false);
+              } catch (err) {
+                const errorMessage =
+                  err instanceof Error ? err.message : "Failed to save sequence";
+                setError(errorMessage);
+                setIsSaving(false);
+              }
+            }}
+            disabled={isSaving || timelineClips.length === 0}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            {isSaving && <Loader className="w-4 h-4 animate-spin" />}
+            <Save className="w-4 h-4" />
+            {isSaving ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>
+
+      {/* Loading and Error States */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8 bg-[#2a2a2a]">
+          <Loader className="w-5 h-5 animate-spin text-purple-500 mr-3" />
+          <p className="text-white">Loading clips...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-900/30 border-l-4 border-red-500 px-4 py-3 text-red-200">
+          {error}
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
@@ -187,22 +294,30 @@ const handleImportClick = () => {
             <h3 className="text-white">Clips</h3>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {clips.map((clip) => (
-              <Card
-                key={clip.id}
-                draggable
-                onDragStart={() => handleDragStart(clip.id)}
-                className="bg-[#2a2a2a] border-white/10 p-3 cursor-move hover:bg-[#333] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-16 h-12 bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm truncate">{clip.name}</p>
-                    <p className="text-white/50 text-xs">{clip.duration}s</p>
+            {clips.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Upload className="w-10 h-10 text-white/30 mb-2" />
+                <p className="text-white/70 text-sm">No clips yet</p>
+                <p className="text-white/50 text-xs mt-1">Click Import to add videos</p>
+              </div>
+            ) : (
+              clips.map((clip) => (
+                <Card
+                  key={clip.id}
+                  draggable
+                  onDragStart={() => handleDragStart(clip.id)}
+                  className="bg-[#2a2a2a] border-white/10 p-3 cursor-move hover:bg-[#333] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-12 bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded flex-shrink-0"></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm truncate">{clip.originalName}</p>
+                      <p className="text-white/50 text-xs">{clip.duration || 10}s</p>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
         </div>
 
@@ -306,7 +421,7 @@ const handleImportClick = () => {
                             }}
                           >
                             <span className="text-white text-xs truncate flex-1">
-                              {clip?.name}
+                              {clip?.originalName}
                             </span>
                             <Button
                               size="sm"
