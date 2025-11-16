@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import { UPLOAD_DIR } from "../config/storagePaths.js"; // note .js extension at runtime if transpiled; with ts-node you can omit
-import { handleVideoUpload } from "../controllers/uploadController.js";
+import { handleVideoUpload } from "../controllers/uploadControllers.js";
 
 const router = express.Router();
 

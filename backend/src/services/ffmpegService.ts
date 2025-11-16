@@ -20,44 +20,49 @@ export function mergeVideosByIds(userId: string, clipFilenames: string[]): Promi
       if (!fs.existsSync(p)) return reject(new Error(`Input not found: ${p}`));
     }
 
-    // create temporary concat file (ffmpeg concat demuxer needs "file 'path'")
     const concatFile = path.join(EXPORT_DIR, `concat_${userId}_${Date.now()}.txt`);
-    const concatContent = inputs.map(p => `file '${p.replace(/'/g, "'\\''")}'`).join("\n");
-    fs.writeFileSync(concatFile, concatContent);
-
     const outputName = `choreo_${userId}_${Date.now()}.mp4`;
     const outputPath = path.join(EXPORT_DIR, outputName);
 
-    // Attempt concat with copy first (fast). If it fails, fallback to re-encode.
-    const cmd = ffmpeg()
-      .input(concatFile)
-      .inputOptions(["-f", "concat", "-safe", "0"])
-      .outputOptions(["-c", "copy"])
-      .on("error", function (err) {
-        console.warn("ffmpeg concat copy failed; trying re-encode. error:", err.message);
-        // fallback: re-encode
-        const cmd2 = ffmpeg();
-        inputs.forEach(i => cmd2.input(i));
-        cmd2
-          .on("end", () => {
-            // remove concat file
-            try { fs.unlinkSync(concatFile); } catch {}
-            resolve(outputName);
-          })
-          .on("error", (err2) => {
-            try { fs.unlinkSync(concatFile); } catch {}
-            reject(err2);
-          })
-          // re-encode to H264 + AAC
-          .videoCodec("libx264")
-          .audioCodec("aac")
-          .format("mp4")
-          .mergeToFile(outputPath, EXPORT_DIR);
-      })
-      .on("end", () => {
-        try { fs.unlinkSync(concatFile); } catch {}
-        resolve(outputName);
-      })
-      .mergeToFile(outputPath, EXPORT_DIR);
+    try {
+      // create temporary concat file (ffmpeg concat demuxer needs "file 'path'")
+      const concatContent = inputs.map(p => `file '${p.replace(/'/g, "'\\''")}'`).join("\n");
+      fs.writeFileSync(concatFile, concatContent);
+
+      // Attempt concat with copy first (fast). If it fails, fallback to re-encode.
+      const cmd = ffmpeg()
+        .input(concatFile)
+        .inputOptions(["-f", "concat", "-safe", "0"])
+        .outputOptions(["-c", "copy"])
+        .output(outputPath)
+        .on("error", function (err) {
+          console.warn("ffmpeg concat copy failed; trying re-encode. error:", err.message);
+          // fallback: re-encode
+          const cmd2 = ffmpeg();
+          inputs.forEach(i => cmd2.input(i));
+          cmd2
+            .outputOptions(["-c:v", "libx264", "-c:a", "aac"])
+            .format("mp4")
+            .output(outputPath)
+            .on("end", () => {
+              // remove concat file
+              try { fs.unlinkSync(concatFile); } catch (e) { console.warn("Failed to remove concat file:", e); }
+              resolve(outputName);
+            })
+            .on("error", (err2) => {
+              try { fs.unlinkSync(concatFile); } catch (e) { console.warn("Failed to remove concat file:", e); }
+              reject(err2);
+            })
+            .run();
+        })
+        .on("end", () => {
+          try { fs.unlinkSync(concatFile); } catch (e) { console.warn("Failed to remove concat file:", e); }
+          resolve(outputName);
+        })
+        .run();
+    } catch (err) {
+      try { fs.unlinkSync(concatFile); } catch (e) { console.warn("Failed to remove concat file:", e); }
+      reject(err);
+    }
   });
 }

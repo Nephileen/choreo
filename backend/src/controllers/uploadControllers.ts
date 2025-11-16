@@ -1,11 +1,14 @@
 import fs from "fs";
 import path from "path";
-import { UPLOAD_DIR } from "../config/storagePaths";
+import { UPLOAD_DIR, DATA_DIR } from "../config/storagePaths";
 import { v4 as uuidv4 } from "uuid";
 
-const VIDEOS_JSON = path.join(process.cwd(), "data", "videos.json");
+const VIDEOS_JSON = path.join(DATA_DIR, "videos.json");
 
 type MulterFile = Express.Multer.File;
+
+// Allowed video formats
+const ALLOWED_FORMATS = [".mp4", ".mov", ".avi", ".webm", ".mkv", ".flv"];
 
 function readVideos(): any[] {
   if (!fs.existsSync(VIDEOS_JSON)) return [];
@@ -28,6 +31,20 @@ export async function handleVideoUpload(req: any, res: any) {
 
     if (!files || files.length === 0) {
       return res.status(400).json({ error: "No files uploaded" });
+    }
+
+    // Validate file formats
+    const invalidFiles = files.filter(f => {
+      const ext = path.extname(f.originalname).toLowerCase();
+      return !ALLOWED_FORMATS.includes(ext);
+    });
+
+    if (invalidFiles.length > 0) {
+      return res.status(400).json({ 
+        error: "Invalid file format",
+        details: `Only video formats are allowed: ${ALLOWED_FORMATS.join(", ")}`,
+        invalidFiles: invalidFiles.map(f => f.originalname)
+      });
     }
 
     // ensure user folder

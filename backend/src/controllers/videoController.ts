@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
+import { DATA_DIR } from "../config/storagePaths";
 
-const VIDEOS_JSON = path.join(process.cwd(), "data", "videos.json");
+const VIDEOS_JSON = path.join(DATA_DIR, "videos.json");
 
 function readVideos() {
   if (!fs.existsSync(VIDEOS_JSON)) return [];
