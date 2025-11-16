@@ -18,12 +18,20 @@ export function Navbar({ onProjectsClick }: NavbarProps) {
         </div>
 
         {/* Projects Button */}
-        <Button
+        <div className="flex items-center gap-4">
+          <Button
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
           onClick={onProjectsClick}
         >
           Projects
         </Button>
+        {/* About Us Button */}
+         <Button
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+         >
+          About Us 
+         </Button>
+        </div>
       </div>
     </nav>
   );
