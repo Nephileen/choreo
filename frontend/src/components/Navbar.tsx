@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { BugIcon, BugOff, BugPlay, BugPlayIcon, ImagePlay, LucideBugPlay, LucidePlay, Play, PlayCircle } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface NavbarProps {
@@ -12,9 +12,9 @@ export function Navbar({ onProjectsClick }: NavbarProps) {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-lg">
-            <Play className="w-5 h-5 text-white fill-white" />
+            <BugIcon className="w-5 h-5 text-white fill-white" />
           </div>
-          <span className="text-white text-2xl tracking-tight">choreo</span>
+          <span className="text-white text-2xl tracking-tight">Choreo</span>
         </div>
 
         {/* Projects Button */}
