@@ -8,6 +8,7 @@ import {
   getSequence,
   saveSequence,
   exportChoreography,
+  getFullUrl,
   UploadedClip,
 } from "../services/api";
 
@@ -45,6 +46,20 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [isRenderingPreview, setIsRenderingPreview] = useState(false);
+
+  // Sync play/pause state with the preview video element
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (isPlaying) {
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [isPlaying, previewSrc]);
 
   // Load clips and saved sequence on mount
   useEffect(() => {
@@ -227,6 +242,35 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
           </Button>
 
           <Button
+            size="sm"
+            onClick={async () => {
+              try {
+                setIsRenderingPreview(true);
+                setError(null);
+                // Request backend to export merged choreography and set as preview
+                const exportUrl = await exportChoreography();
+                setPreviewSrc(exportUrl);
+                // If a video element exists, try to load and play
+                setTimeout(() => {
+                  if (videoRef.current) {
+                    videoRef.current.load();
+                    videoRef.current.play().catch(() => {});
+                  }
+                }, 50);
+              } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : "Failed to render preview";
+                setError(errorMessage);
+              } finally {
+                setIsRenderingPreview(false);
+              }
+            }}
+            disabled={isRenderingPreview || timelineClips.length === 0}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white disabled:opacity-50 disabled:cursor-not-allowed mr-2 flex items-center gap-2">
+            {isRenderingPreview && <Loader className="w-4 h-4 animate-spin" />}
+            Preview
+          </Button>
+
+          <Button
             onClick={async () => {
               try {
                 setIsSaving(true);
@@ -326,7 +370,26 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
           {/* Preview Monitor */}
           <div className="h-[45%] bg-black border-b border-white/10 flex items-center justify-center">
             <div className="w-full max-w-3xl aspect-video bg-[#0a0a0a] rounded-lg flex items-center justify-center">
-              <Play className="w-16 h-16 text-white/30" />
+              {previewSrc ? (
+                <video
+                  ref={videoRef}
+                  src={getFullUrl(previewSrc)}
+                  controls
+                  className="w-full h-full rounded-lg bg-black"
+                  onTimeUpdate={(e) => {
+                    const t = (e.target as HTMLVideoElement).currentTime;
+                    setCurrentTime(Math.floor(t));
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-center p-4">
+                  <div>
+                    <Play className="w-16 h-16 text-white/30 mx-auto" />
+                    <p className="text-white/60 mt-2">No preview available</p>
+                    <p className="text-white/40 text-xs">Select a clip or render a preview</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -414,6 +477,18 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
                             key={tc.id}
                             draggable
                             onDragStart={(e) => handleTimelineClipDragStart(e, tc.id)}
+                            onClick={() => {
+                              // Preview this clip
+                              if (clip?.url) {
+                                setPreviewSrc(clip.url);
+                                setTimeout(() => {
+                                  if (videoRef.current) {
+                                    videoRef.current.load();
+                                    videoRef.current.play().catch(() => {});
+                                  }
+                                }, 50);
+                              }
+                            }}
                             className="absolute top-1 bottom-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded flex items-center justify-between px-2 group cursor-move"
                             style={{
                               left: tc.startTime * pixelsPerSecond,
