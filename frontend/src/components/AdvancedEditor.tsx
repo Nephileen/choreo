@@ -35,7 +35,7 @@ const mockClips: VideoClip[] = [
 ];
 
 export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
-  const [clips] = useState<VideoClip[]>(mockClips);
+  const [clips, setClips] = useState<VideoClip[]>(mockClips);
   const [timelineClips, setTimelineClips] = useState<TimelineClip[]>([
     { id: "t1", clipId: "1", startTime: 0, duration: 15, trackIndex: 0 },
     { id: "t2", clipId: "2", startTime: 15, duration: 30, trackIndex: 0 },
@@ -44,6 +44,34 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [draggedClip, setDraggedClip] = useState<string | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+const handleImportFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const files = event.target.files;
+  if (!files) return;
+
+  const newClips: VideoClip[] = Array.from(files).map((file) => ({
+    id: crypto.randomUUID(),
+    name: file.name,
+    duration: 0,
+    url: URL.createObjectURL(file),
+    notes: "",
+  }));
+
+  setClips((prev) => [...prev, ...newClips]);
+
+  // reset input so you can import the same file again later if needed
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};
+
+const handleImportClick = () => {
+  fileInputRef.current?.click();
+};
+
+  /* */
 
   const pixelsPerSecond = 10;
   const totalDuration = Math.max(
@@ -116,6 +144,16 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
 
   return (
     <div className="h-screen bg-[#1a1a1a] flex flex-col overflow-hidden">
+      <input
+  ref={fileInputRef}
+  type="file"
+  accept="video/*"
+  multiple
+  onChange={handleImportFileSelect}
+  title="Import video files"
+  aria-label="Import video files"
+  className="hidden"
+/>
       {/* Top Toolbar */}
       <div className="bg-[#2a2a2a] border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -129,10 +167,11 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-            <Upload className="w-4 h-4 mr-2" />
+            onClick={handleImportClick}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white mr-2">
             Import
           </Button>
+
           <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
             <Save className="w-4 h-4 mr-2" />
             Save
@@ -298,7 +337,7 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div>
               <label className="text-white/70 text-sm mb-2 block">Volume</label>
-              <Slider defaultValue={[0]} max={100} step={1} className="b-full" />
+              <Slider defaultValue={[50]} max={100} step={1} className="b-full" />
             </div>
             <div>
               <label className="text-white/70 text-sm mb-2 block">Speed</label>
@@ -306,7 +345,7 @@ export function AdvancedEditor({ projectId, onBack }: AdvancedEditorProps) {
             </div>
             <div>
               <label className="text-white/70 text-sm mb-2 block">Opacity</label>
-              <Slider defaultValue={[0]} max={100} step={1} className="w-full" />
+              <Slider defaultValue={[50]} max={100} step={1} className="w-full" />
             </div>
           </div>
         </div>

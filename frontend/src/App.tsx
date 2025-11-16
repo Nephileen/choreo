@@ -63,32 +63,32 @@ export default function App() {
   }
 
   // Home page
-  return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Background Dancing Images */}
-      <div className="absolute inset-0 grid grid-cols-3 gap-0">
-        <div className="relative overflow-hidden">
-          <ImageWithFallback
-            src="https://images.unsplash.com/photo-1589460562162-847ebc689d7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYW5jZSUyMGNob3Jlb2dyYXBoeXxlbnwxfHx8fDE3NjMyMzU5MTZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-            alt="Dance choreography"
-            className="w-full h-full object-cover opacity-20"
-          />
+    return (
+      <div className="min-h-screen bg-black relative overflow-hidden">
+        {/* Background Dancing Images */}
+        <div className="absolute inset-0 grid grid-cols-3 gap-0">
+          <div className="relative overflow-hidden">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1589460562162-847ebc689d7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYW5jZSUyMGNob3Jlb2dyYXBoeXxlbnwxfHx8fDE3NjMyMzU5MTZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              alt="Dance choreography"
+              className="w-full h-full object-cover opacity-20"
+            />
+          </div>
+          <div className="relative overflow-hidden">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1686172249094-8d0e7eeb6bd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBkYW5jZSUyMG1vdmVtZW50fGVufDF8fHx8MTc2MzIwNDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              alt="Modern dance movement"
+              className="w-full h-full object-cover opacity-20"
+            />
+          </div>
+          <div className="relative overflow-hidden">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1495791185843-c73f2269f669?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWxsZXQlMjBkYW5jZXJ8ZW58MXx8fHwxNzYzMjE1MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              alt="Ballet dancer"
+              className="w-full h-full object-cover opacity-20"
+            />
+          </div>
         </div>
-        <div className="relative overflow-hidden">
-          <ImageWithFallback
-            src="https://images.unsplash.com/photo-1686172249094-8d0e7eeb6bd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBkYW5jZSUyMG1vdmVtZW50fGVufDF8fHx8MTc2MzIwNDA2M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-            alt="Modern dance movement"
-            className="w-full h-full object-cover opacity-20"
-          />
-        </div>
-        <div className="relative overflow-hidden">
-          <ImageWithFallback
-            src="https://images.unsplash.com/photo-1495791185843-c73f2269f669?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWxsZXQlMjBkYW5jZXJ8ZW58MXx8fHwxNzYzMjE1MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-            alt="Ballet dancer"
-            className="w-full h-full object-cover opacity-20"
-          />
-        </div>
-      </div>
 
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black" />
